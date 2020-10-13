@@ -3,9 +3,25 @@ CISCO PRIME BACKUP
 This playbook was created to generate and extract a Cisco Prime Backup from a NFS server.
 
 
-System Requirements
--------------------
-`expect` installed in NFS server.
+Pre-requisites to run the playbook
+----------------------------------
+`expect` installed in NFS server, to ensure it is installed you could run the following command `/usr/bin/expect`
+
+This playbook have been developed and tested under Ansble 2.10.2 and python version 3.6.9 on Ubuntu 18.4
+You will require python, pip, git and ansible, and always is recommended to use a venv.
+
+To install the requirements:
+```
+$ sudo apt-get update && sudo apt-get upgrade
+$ sudo apt-get install -y build-essential libssl-dev libffi-dev python-dev
+$ sudo apt-get install -y python3-pip
+$ sudo apt-get install -y python3-venv
+
+$ python3 -m venv venv
+$ source ./venv/bin/activate
+(venv) $ pip install --upgrade pip setuptools
+(venv) $ pip install ansible
+```
 
 
 Variables
@@ -68,5 +84,17 @@ Future Improvements:
 --------------------
 Create a task to remove old backup files in Prime.
 
+Example of execution:
+--------------------
+```
+(venv):~/ansible-pb_cisco-prime-backup$ ansible-playbook pb_prime-backup.yml -e nfs_user=nfs_user -e nfs_password=nfs_user -e prime_user=prime_user -e prime_password=prime_password -v
+Using /ansible-pb_cisco-prime-backup/ansible.cfg as config file
 
-[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/jmedina0911/ansible-pb_cisco-prime-backup)
+PLAY [prime] ***************************************************************************************************
+
+TASK [RUN EXPECT FROM NFS SERVER TO GENERATE A BACKUPFILE]******************************************************
+changed: [prime -> nfs_server] => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result", "changed": true}
+
+TASK [RUN EXPECT FROM NFS SERVER TO BRING THE BACKUP PERFORMED PREVIOUSLY] *************************************
+changed: [prime -> nfs_server] => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result", "changed": true}
+```
