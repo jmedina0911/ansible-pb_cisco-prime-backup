@@ -67,3 +67,6 @@ The playbook is creating the backup in a Prime repository called `defaultRepo`, 
 Future Improvements:
 --------------------
 Create a task to remove old backup files in Prime.
+
+
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/jmedina0911/ansible-pb_cisco-prime-backup)
