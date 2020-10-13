@@ -3,8 +3,20 @@
   gather_facts: False
   vars:
     nfs_server: "nfs-server_hostname"
+    dst_file_name: "{{ inventory_hostname }}_{{ '%Y-%m-%d_%H%M' | strftime }}.tar.gpg"
+    nfs_dir: "/desired/path/{{ inventory_hostname }}"
 
   tasks:
+    - name: "ENSURE THE NFS DIR EXIST IN THE NFS SERVER"
+      vars:
+        ansible_user: "{{ nfs_user }}"
+        ansible_password: "{{ nfs_password }}"
+      file:
+        path: "{{ nfs_dir }}"
+        state: "directory"
+      delegate_to: "{{ nfs_server }}"
+      no_log: true
+
     - name: "RUN EXPECT FROM NFS SERVER TO GENERATE A BACKUPFILE"
       vars:
         ansible_user: "{{ nfs_user }}"
@@ -47,7 +59,7 @@
         expect "*#"
         send "file_name=\$(ls -t | head -1)\n"
         expect "*#"
-        send "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r \${file_name} {{ nfs_user }}}@{{ nfs_server }}:/dst/path/\n"
+        send "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r \${file_name} {{ nfs_user }}@{{ nfs_server }}:{{ nfs_dir }}/{{ dst_file_name }}\n"
         expect "*password:"
         send "{{ ansible_password }}\n"
         expect "*#"
@@ -56,3 +68,13 @@
         executable: /usr/bin/expect
       delegate_to: "{{ nfs_server }}"
       no_log: true
+
+    - name: "VERIFY THAT THE BACKUP TRANSFER WAS COMPLETED"
+      vars:
+        ansible_user: "{{ nfs_user }}"
+        ansible_password: "{{ nfs_password }}"
+      stat:
+        path: "{{ nfs_dir }}/{{ dst_file_name }}"
+      delegate_to: "{{ nfs_server }}"
+      register: isfile
+      failed_when: not isfile.stat.exists
