@@ -2,6 +2,7 @@ CISCO PRIME BACKUP
 ==================
 This playbook was created to generate and extract a Cisco Prime Backup from a NFS server.
 
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/jmedina0911/ansible-pb_cisco-prime-backup)
 
 Pre-requisites to run the playbook
 ----------------------------------
@@ -27,8 +28,11 @@ $ source ./venv/bin/activate
 Variables
 ---------
 **nfs_server** (str):
-hostname of the NFS server where to store the backup files.
+Hostname of the NFS server where to store the backup files.
 *Example*: ``10.200.5.1``
+
+**nfs_dir** (str):
+NFS directory path where to save the backup file
 
 **nfs_user** (str):
 username to login in the nfs server.
@@ -73,7 +77,7 @@ ansible-inventory --list
 Run playbook adding the variables needed `nfs_user`, `nfs_password`, `prime_user`, `prime_password`
 
 ```
-ansible-playbook pb_prime-backup.yml -e nfs_user=<nfs-user>  -e nfs_password=<nfs-pwd> -e prime_user=<prime-user> prime_password=<prime-pwd>
+ansible-playbook pb_prime-backup.yml -e nfs_user=<nfs-user>  -e nfs_password=<nfs-pwd> -e prime_user=<prime-user> -e prime_password=<prime-pwd>
 ```
 
 Notes:
@@ -87,14 +91,23 @@ Create a task to remove old backup files in Prime.
 Example of execution:
 --------------------
 ```
-(venv):~/ansible-pb_cisco-prime-backup$ ansible-playbook pb_prime-backup.yml -e nfs_user=nfs_user -e nfs_password=nfs_user -e prime_user=prime_user -e prime_password=prime_password -v
+(venv):~/ansible-pb_cisco-prime-backup$ ansible-playbook pb_prime-backup.yml -e nfs_user=nfs_user -e nfs_password=nfs_pwd -e prime_user=prime_user -e prime_password=prime_password -v
 Using /ansible-pb_cisco-prime-backup/ansible.cfg as config file
 
 PLAY [prime] ***************************************************************************************************
+
+TASK [ENSURE THE NFS DIR EXIST IN THE NFS SERVER] **************************************************************
+ok: [prime -> nfs_server] => {"changed": false, "gid": 20, "group": "users", "mode": "0777", "owner": "user", "path": "/desired/path/2.2.2.2", "size": 52, "state": "directory", "uid": 96992}
 
 TASK [RUN EXPECT FROM NFS SERVER TO GENERATE A BACKUPFILE]******************************************************
 changed: [prime -> nfs_server] => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result", "changed": true}
 
 TASK [RUN EXPECT FROM NFS SERVER TO BRING THE BACKUP PERFORMED PREVIOUSLY] *************************************
 changed: [prime -> nfs_server] => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result", "changed": true}
+
+TASK [VERIFY THAT THE BACKUP TRANSFER WAS COMPLETED] ***********************************************************
+changed: [prime -> nfs_server] => removed output
+
+PLAY RECAP ****************************************************************************************************************
+3.3.3.3             : ok=4    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
