@@ -1,0 +1,58 @@
+---
+- hosts: "prime"
+  gather_facts: False
+  vars:
+    nfs_server: "nfs-server_hostname"
+
+  tasks:
+    - name: "RUN EXPECT FROM NFS SERVER TO GENERATE A BACKUPFILE"
+      vars:
+        ansible_user: "{{ nfs_user }}"
+        ansible_password: "{{ nfs_password }}"
+      shell: |
+        set timeout 600
+        spawn ssh {{ prime_user }}@{{ inventory_hostname }}
+        expect "*password:"
+        send "{{ prime_password }}\n"
+        expect "*#"
+        send "backup {{ inventory_hostname }} repository defaultRepo application NCS\n"
+        expect "*assword :"
+        send "\n"
+        expect "*assword :"
+        send "\n"
+        expect "*#"
+        exit 0
+      args:
+        executable: /usr/bin/expect
+      delegate_to: "{{ nfs_server }}"
+      no_log: true
+
+    - name: "RUN EXPECT FROM NFS SERVER TO BRING THE BACKUP PERFORMED PREVIOUSLY"
+      vars: 
+        ansible_user: "{{ nfs_user }}"
+        ansible_password: "{{ nfs_password }}"
+      shell: |
+        set timeout 300
+        spawn ssh {{ prime_user }}@{{ inventory_hostname }}
+        expect "*password:"
+        send "{{ prime_password }}\n"
+        expect "*#"
+        send "shell\n"
+        expect "*password :"
+        send "{{ prime_password }}\n"
+        expect "*#"
+        send "sudo su\n"
+        expect "*#"
+        send "cd ../localdisk/defaultRepo/\n"
+        expect "*#"
+        send "file_name=\$(ls -t | head -1)\n"
+        expect "*#"
+        send "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r \${file_name} {{ nfs_user }}}@{{ nfs_server }}:/dst/path/\n"
+        expect "*password:"
+        send "{{ ansible_password }}\n"
+        expect "*#"
+        exit 0
+      args:
+        executable: /usr/bin/expect
+      delegate_to: "{{ nfs_server }}"
+      no_log: true
